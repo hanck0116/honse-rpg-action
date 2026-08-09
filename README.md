@@ -47,17 +47,22 @@ Authorization: Bearer <ACTION_API_KEY>
 
 상태 변경 요청은 `action_id`를 반드시 포함합니다. 이름 변경·보관·복원에는 마지막 조회에서 받은 `expected_revision`도 필요합니다. 같은 `action_id`와 같은 요청을 다시 보내면 저장된 응답을 그대로 반환하고, 같은 ID에 다른 내용을 보내면 거부합니다.
 
-## Cloudflare 배포 전 준비
+## Cloudflare 배포
 
-이번 단계에서는 실제 배포를 수행하지 않습니다. 다음 단계에서 Cloudflare 계정에 D1을 만들고 설정을 확정한 뒤 아래 순서로 진행합니다.
+Cloudflare 계정 배포는 GitHub Actions의 `Deploy to Cloudflare` 워크플로를 수동 실행합니다. 최초 실행 전에 저장소의 `Settings > Secrets and variables > Actions`에 다음 Repository secret을 등록합니다.
 
-```bash
-npx wrangler d1 create honse-rpg-action
-npx wrangler d1 migrations apply honse-rpg-action --remote
-npx wrangler secret put ACTION_API_KEY
-npm run deploy:dry-run
-npx wrangler deploy
-```
+| Secret | 값 |
+|---|---|
+| `CLOUDFLARE_ACCOUNT_ID` | 배포할 Cloudflare 계정 ID |
+| `CLOUDFLARE_API_TOKEN` | `Workers Scripts: Edit`, `D1: Edit` 권한을 해당 계정에만 부여한 API 토큰 |
+| `ACTION_API_KEY` | Custom GPT와 Worker가 함께 사용할 충분히 긴 무작위 API 키 |
 
-D1 생성 결과의 `database_id`를 `wrangler.jsonc`에 반영해야 합니다.
+워크플로는 검사 통과 후 다음 작업을 수행합니다.
 
+1. `honse-rpg-action` D1 데이터베이스 조회 또는 최초 생성
+2. 실제 D1 ID를 `wrangler.jsonc`에 반영
+3. 원격 마이그레이션 적용
+4. `ACTION_API_KEY`를 Worker Secret으로 등록하면서 배포
+5. 확정된 D1 설정을 저장소에 커밋
+
+토큰과 API 키 원문은 저장소에 커밋하지 않습니다. `ACTION_API_KEY`는 이후 Custom GPT Action 인증에도 입력해야 하므로 별도의 안전한 장소에 보관합니다.
