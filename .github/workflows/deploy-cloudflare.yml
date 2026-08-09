@@ -1,0 +1,78 @@
+name: Deploy to Cloudflare
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      DATABASE_NAME: honse-rpg-action
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate required secrets
+        env:
+          ACTION_API_KEY: ${{ secrets.ACTION_API_KEY }}
+        run: |
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$ACTION_API_KEY"
+
+      - name: Run checks
+        run: npm run check
+
+      - name: Find or create D1 database
+        run: |
+          database_id="$(npx wrangler d1 list --json --cwd /tmp | node scripts/find-d1-id.mjs "$DATABASE_NAME")"
+          if [ -z "$database_id" ]; then
+            npx wrangler d1 create "$DATABASE_NAME" --cwd /tmp
+            database_id="$(npx wrangler d1 list --json --cwd /tmp | node scripts/find-d1-id.mjs "$DATABASE_NAME")"
+          fi
+          node scripts/set-d1-id.mjs "$database_id"
+
+      - name: Generate bindings
+        run: npm run cf-typegen
+
+      - name: Apply remote migrations
+        run: npx wrangler d1 migrations apply "$DATABASE_NAME" --remote
+
+      - name: Deploy Worker and secret
+        env:
+          ACTION_API_KEY: ${{ secrets.ACTION_API_KEY }}
+        run: |
+          secrets_file="$(mktemp)"
+          trap 'rm -f "$secrets_file"' EXIT
+          printf 'ACTION_API_KEY=%s\n' "$ACTION_API_KEY" > "$secrets_file"
+          npx wrangler deploy --secrets-file "$secrets_file"
+
+      - name: Save D1 binding to repository
+        run: |
+          if git diff --quiet -- wrangler.jsonc worker-configuration.d.ts; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wrangler.jsonc worker-configuration.d.ts
+          git commit -m "Record production D1 binding"
+          git push
