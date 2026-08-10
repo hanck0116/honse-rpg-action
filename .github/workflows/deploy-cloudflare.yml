@@ -38,6 +38,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$CLOUDFLARE_API_TOKEN"
           test -n "$ACTION_API_KEY"
+          test "${#ACTION_API_KEY}" -ge 64
 
       - name: Run checks
         run: npm run check
