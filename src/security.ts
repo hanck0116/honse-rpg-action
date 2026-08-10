@@ -9,13 +9,13 @@ async function sha256Bytes(value: string): Promise<Uint8Array> {
   return new Uint8Array(digest);
 }
 
+export async function sha256Hex(value: string): Promise<string> {
+  return bytesToHex(await sha256Bytes(value));
+}
+
 async function constantTimeEqual(left: string, right: string): Promise<boolean> {
   const [leftHash, rightHash] = await Promise.all([sha256Bytes(left), sha256Bytes(right)]);
-  let difference = 0;
-  for (let index = 0; index < leftHash.length; index += 1) {
-    difference |= (leftHash[index] ?? 0) ^ (rightHash[index] ?? 0);
-  }
-  return difference === 0;
+  return crypto.subtle.timingSafeEqual(leftHash, rightHash);
 }
 
 function stableStringify(value: unknown): string {
@@ -30,7 +30,7 @@ function stableStringify(value: unknown): string {
 }
 
 export async function hashRequest(value: unknown): Promise<string> {
-  return bytesToHex(await sha256Bytes(stableStringify(value)));
+  return sha256Hex(stableStringify(value));
 }
 
 export async function requireApiKey(request: Request, expectedKey: string): Promise<void> {
