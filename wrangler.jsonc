@@ -3,15 +3,19 @@
   "name": "honse-rpg-action",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-07",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "secrets": {
-    "required": ["ACTION_API_KEY"]
+    "required": [
+      "ACTION_API_KEY"
+    ]
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "honse-rpg-action",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "96a84835-2705-4cc7-80e6-0a4210ed97ea",
       "migrations_dir": "migrations"
     }
   ],
