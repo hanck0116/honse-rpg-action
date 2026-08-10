@@ -19,6 +19,10 @@ async function createSlot(actionId: string, title: string): Promise<Response> {
 
 beforeEach(async () => {
   await env.DB.batch([
+    env.DB.prepare("DELETE FROM mutation_guards"),
+    env.DB.prepare("DELETE FROM party_access"),
+    env.DB.prepare("DELETE FROM game_entities"),
+    env.DB.prepare("DELETE FROM slot_counters"),
     env.DB.prepare("DELETE FROM rolls"),
     env.DB.prepare("DELETE FROM world_states"),
     env.DB.prepare("DELETE FROM characters"),
@@ -175,4 +179,3 @@ describe("save slots", () => {
     });
   });
 });
-
