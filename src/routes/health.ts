@@ -6,8 +6,7 @@ export function healthResponse(): Response {
     data: {
       service: "honse-rpg-action",
       status: "healthy",
-      api_version: "v1",
+      api_version: "v2",
     },
   });
 }
-
