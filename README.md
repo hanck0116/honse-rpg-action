@@ -57,6 +57,8 @@ Cloudflare 계정 배포는 GitHub Actions의 `Deploy to Cloudflare` 워크플�
 | `CLOUDFLARE_API_TOKEN` | `Workers Scripts: Edit`, `D1: Edit` 권한을 해당 계정에만 부여한 API 토큰 |
 | `ACTION_API_KEY` | Custom GPT와 Worker가 함께 사용할 충분히 긴 무작위 API 키 |
 
+`ACTION_API_KEY`는 64자 이상이어야 하며, 워크플로에서 길이를 검사합니다.
+
 워크플로는 검사 통과 후 다음 작업을 수행합니다.
 
 1. `honse-rpg-action` D1 데이터베이스 조회 또는 최초 생성
@@ -66,3 +68,5 @@ Cloudflare 계정 배포는 GitHub Actions의 `Deploy to Cloudflare` 워크플�
 5. 확정된 D1 설정을 저장소에 커밋
 
 토큰과 API 키 원문은 저장소에 커밋하지 않습니다. `ACTION_API_KEY`는 이후 Custom GPT Action 인증에도 입력해야 하므로 별도의 안전한 장소에 보관합니다.
+
+이 프로젝트는 Workers Free와 D1 Free만 사용합니다. 별도 도메인, Workers AI, R2, KV, Vectorize, Durable Objects, 유료 추적·로그 내보내기는 구성하지 않습니다. 무료 한도를 넘으면 유료 서비스로 자동 전환하지 않고 Cloudflare 요청이 제한됩니다.
