@@ -3,9 +3,13 @@
   "name": "honse-rpg-action",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-08",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "secrets": {
-    "required": ["ACTION_API_KEY"]
+    "required": [
+      "ACTION_API_KEY"
+    ]
   },
   "d1_databases": [
     {
