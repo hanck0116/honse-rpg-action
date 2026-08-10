@@ -2,6 +2,20 @@ name: Deploy to Cloudflare
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/deploy-cloudflare.yml
+      - migrations/**
+      - src/**
+      - test/**
+      - package.json
+      - package-lock.json
+      - tsconfig.json
+      - vitest.config.ts
+      - wrangler.jsonc
+      - worker-configuration.d.ts
 
 permissions:
   contents: write
@@ -66,6 +80,16 @@ jobs:
           trap 'rm -f "$secrets_file"' EXIT
           printf 'ACTION_API_KEY=%s\n' "$ACTION_API_KEY" > "$secrets_file"
           npx wrangler deploy --secrets-file "$secrets_file"
+
+      - name: Verify deployed v2 API
+        env:
+          ACTION_API_KEY: ${{ secrets.ACTION_API_KEY }}
+          WORKER_URL: https://honse-rpg-action.hancg0116.workers.dev
+        run: |
+          curl --fail --silent --show-error "$WORKER_URL/health" | grep '"api_version":"v2"'
+          curl --fail --silent --show-error \
+            --header "Authorization: Bearer $ACTION_API_KEY" \
+            "$WORKER_URL/v1/save-slots" | grep '"ok":true'
 
       - name: Save D1 binding to repository
         run: |
