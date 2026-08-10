@@ -1,6 +1,8 @@
 import { AppError } from "./errors";
 
-const MAX_BODY_BYTES = 16_384;
+// GPT Actions allow text payloads below 100,000 characters. Leave headroom for
+// UTF-8 expansion while still supporting a complete 10-mission board.
+const MAX_BODY_BYTES = 96_000;
 
 export async function readJsonObject(request: Request): Promise<Record<string, unknown>> {
   const declaredLength = request.headers.get("content-length");
@@ -76,4 +78,3 @@ export function requireRevision(object: Record<string, unknown>): number {
   }
   return value;
 }
-
